@@ -1,4 +1,4 @@
-#注释不会写，照葫芦画瓢
+#注释不会写，照葫芦画瓢写的
 from flask import Flask, request, send_file
 import os
 import requests
@@ -14,23 +14,31 @@ app = Flask(__name__)
 UPLOAD_FOLDER = '/path/to/your/upload/folder'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-#七牛云对象存储配置（按需开启）
+# 七牛云对象存储配置（以下配置可按需开启）
 access_key = 'your_access_key'
 secret_key = 'your_secret_key'
 bucket_name = 'your_bucket_name'
+
+q = Auth(access_key, secret_key)
 
 # 腾讯云 COS 配置
 secret_id = 'YOUR_SECRET_ID'  # 替换为你的 SecretId
 secret_key = 'YOUR_SECRET_KEY'  # 替换为你的 SecretKey
 region = 'YOUR_REGION'  # 替换为你的存储桶所在的区域
 bucket = 'YOUR_BUCKET_NAME'  # 替换为你的存储桶名称
+cos_config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
+cos_client = CosS3Client(cos_config)
 
-#cos_config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
-#cos_client = CosS3Client(cos_config)
+# 阿里云 OSS 配置
+aliyun_access_key_id = 'YOUR_ALIYUN_ACCESS_KEY_ID'
+aliyun_access_key_secret = 'YOUR_ALIYUN_ACCESS_KEY_SECRET'
+aliyun_endpoint = 'YOUR_ALIYUN_ENDPOINT'
+aliyun_bucket = 'YOUR_ALIYUN_BUCKET_NAME'
+# 创建 Bucket 实例
+auth = oss2.Auth(access_key_id, access_key_secret)
+bucket = oss2.Bucket(auth, endpoint, bucket_name)
 
-q = Auth(access_key, secret_key)
-
-#前端html，可将 <html>到</html>的内容分离成单文件，如下
+# 前端html，可将 <html>到</html>的内容分离成单文件，如下
 
 #@app.route('/')
 #def index():
@@ -117,7 +125,7 @@ def generate_filename():
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     return f"{random_part}-{timestamp}.zip"
 
-#构建下载请求
+# 构建下载请求
 @app.route('/download', methods=['POST'])
 def download():
     ids = request.form['ids']
@@ -155,6 +163,12 @@ def download():
                     LocalFilePath=image_filename,
                     Key=f"images/{os.path.basename(image_filename)}"
                 )
+               
+                # 上传图片到阿里云 OSS
+                oss_key = f"backup/{id_var.lower()}.jpg"
+                bucket.put_object_from_file(oss_key, image_filename)
+                
+                #其他云
 
 
     # 删除临时文件夹
