@@ -1,109 +1,125 @@
 # jstor-plants-image-downloader
 
-# Flask Image Downloader and Backup to Online Storage Service(Alibaba cloud, Tencent Cloud, Qiniu cloud, etc.)
+# JSTOR植物图片下载和多云备份
 
-This Flask application allows users to download images by providing IDs and automatically uploads the downloaded images to Online Storage Service for backup. The downloaded images are also compressed into a ZIP file with a unique filename format.
+利用Flask应用程序允许用户通过提供 ID 快速简便地下载 plants.jstor.org 网站上的图片，并自动将下载的图片上传到多种对象存储产品（如腾讯云、阿里云、七牛云）进行备份。下载的图片也会压缩成带有唯一文件名格式的 ZIP 文件存储到本地或在前端供用户下载。
 
-## Features
+## 功能
 
-- Batch download images using user-provided IDs.
-- Store downloaded images locally.
-- Automatically upload downloaded images to Online Storage Service for backup.
-- Compress downloaded images into a ZIP file with a unique filename format (e.g., `abcd-20240701-123456.zip`).
+- 使用用户提供的 ID 批量下载图片。
+- 将下载的图片存储到本地。
+- 自动将下载的图片上传到多个对象存储（腾讯云、阿里云、七牛云）进行备份。
+- 将下载的图片压缩成带有唯一文件名格式的 ZIP 文件（例如，`abcd-20240701-123456.zip`）。
 
-## Prerequisites
+## 安装环境
 
 - Python 3.6+
 - Flask
-- Your cloud service OSS SDK for Python
+- 腾讯云 COS SDK for Python
+- 阿里云 OSS SDK for Python
+- 七牛云 SDK for Python
 - Requests
 - Zipfile
 
-## Installation
+## 安装
 
-1. Clone the repository:
+1. 克隆代码库：
 
     ```bash
     git clone https://github.com/your-repo/flask-image-downloader.git
     cd flask-image-downloader
     ```
 
-2. Create a virtual environment and activate it:
+2. 创建虚拟环境并激活：
 
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
 
-3. Install the required dependencies:
+3. 安装所需的依赖：
 
     ```bash
     pip install -r requirements.txt
     ```
 
-4. Install Tencent Cloud COS SDK: (You can use other service provider's SDK)
+4. 安装云存储 SDK：
 
     ```bash
-    pip install cos-python-sdk-v5
+    pip install cos-python-sdk-v5  # 腾讯云
+    pip install aliyun-python-sdk-oss  # 阿里云
+    pip install qiniu  # 七牛云
     ```
 
-## Configuration
+## 配置
 
-1. Replace the placeholder values in `app.py` with your Tencent Cloud COS credentials and bucket information:
+1. 在 `app.py` 中用你的对象存储凭证和存储桶信息替换占位符：
 
     ```python
-    secret_id = 'YOUR_SECRET_ID'  # Replace with your SecretId
-    secret_key = 'YOUR_SECRET_KEY'  # Replace with your SecretKey
-    region = 'YOUR_REGION'  # Replace with your bucket's region
-    bucket = 'YOUR_BUCKET_NAME'  # Replace with your bucket name
+    # 腾讯云 COS 配置
+    tencent_secret_id = 'YOUR_TENCENT_SECRET_ID'
+    tencent_secret_key = 'YOUR_TENCENT_SECRET_KEY'
+    tencent_region = 'YOUR_TENCENT_REGION'
+    tencent_bucket = 'YOUR_TENCENT_BUCKET_NAME'
+
+    # 阿里云 OSS 配置
+    aliyun_access_key_id = 'YOUR_ALIYUN_ACCESS_KEY_ID'
+    aliyun_access_key_secret = 'YOUR_ALIYUN_ACCESS_KEY_SECRET'
+    aliyun_endpoint = 'YOUR_ALIYUN_ENDPOINT'
+    aliyun_bucket = 'YOUR_ALIYUN_BUCKET_NAME'
+
+    # 七牛云 配置
+    qiniu_access_key = 'YOUR_QINIU_ACCESS_KEY'
+    qiniu_secret_key = 'YOUR_QINIU_SECRET_KEY'
+    qiniu_bucket = 'YOUR_QINIU_BUCKET_NAME'
     ```
 
-2. Set the `UPLOAD_FOLDER` variable to the desired local directory for storing the downloaded images:
+2. 设置 `UPLOAD_FOLDER` 变量为存储下载图片的本地目录：
 
     ```python
     UPLOAD_FOLDER = '/path/to/your/upload/folder'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     ```
 
-## Running the Application
+## 运行应用程序
 
-1. Start the Flask application:
+1. 启动 Flask 应用程序：
 
     ```bash
     python app.py
     ```
 
-2. Open your web browser and navigate to `http://127.0.0.1:5000`.
+2. 打开你的浏览器并导航到 `http://127.0.0.1:5000`。
 
-## Usage
+## 使用方法
 
-1. Enter the IDs of the images you want to download in the provided input field. Separate multiple IDs with commas.
-2. Click the "下载图片" button to download the images.
-3. The downloaded images will be displayed on the web page and compressed into a ZIP file with a unique filename. The ZIP file will be available for download.
-4. The images will also be automatically uploaded to Tencent Cloud COS for backup.
+1. 在提供的输入框中输入要下载的图片 ID，用逗号分隔多个 ID。
+2. 点击“下载图片”按钮下载图片。
+3. 下载的图片将显示在网页上，并压缩成带有唯一文件名的 ZIP 文件。该 ZIP 文件将提供下载。
+4. 图片还将自动上传到多个对象存储进行备份。
 
-## Nginx Configuration for HTTPS
+## 可选步骤：配置 Nginx 以支持 HTTPS
 
-1. Install Nginx:
+1. 安装 Nginx：
 
     ```bash
     sudo yum install nginx
     ```
 
-2. Install Certbot for obtaining SSL certificates:
+2. 安装 Certbot 以获取 SSL 证书：
 
     ```bash
     sudo yum install epel-release
     sudo yum install certbot python-certbot-nginx
     ```
 
-3. Obtain an SSL certificate using Certbot:
+3. 使用 Certbot 获取 SSL 证书：
 
     ```bash
     sudo certbot --nginx -d your_domain.com
     ```
 
-4. Configure Nginx for HTTPS by creating or modifying the configuration file `/etc/nginx/conf.d/flask_app.conf`:
+4. 通过创建或修改 `/etc/nginx/conf.d/flask_app.conf` 文件来配置 Nginx 以支持 HTTPS：
 
     ```nginx
     server {
@@ -135,7 +151,7 @@ This Flask application allows users to download images by providing IDs and auto
     }
     ```
 
-5. Test and reload Nginx:
+5. 检查并重新加载 Nginx：
 
     ```bash
     sudo nginx -t
@@ -144,10 +160,13 @@ This Flask application allows users to download images by providing IDs and auto
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+此项目基于 MIT 许可证。详细信息请参阅 [LICENSE](LICENSE) 文件。
 
-## Acknowledgements
+## 致谢
 
+- [Global Plants on JSTOR](https://plants.jstor.org/)
 - [Flask](https://flask.palletsprojects.com/)
-- [Tencent Cloud COS SDK for Python](https://cloud.tencent.com/document/product/436/12266)
+- [腾讯云 COS SDK for Python](https://cloud.tencent.com/document/product/436/12266)
+- [阿里云 OSS SDK for Python](https://www.alibabacloud.com/help/doc-detail/32097.htm)
+- [七牛云 SDK for Python](https://developer.qiniu.com/kodo/sdk/1242/python)
 - [Requests](https://docs.python-requests.org/en/latest/)
